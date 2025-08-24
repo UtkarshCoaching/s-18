@@ -1,5 +1,4 @@
 const questions = [
-
   {
     "question": "কোন সুলতান দিল্লিতে 'কুতুব মিনার' নির্মাণ সম্পন্ন করেন?",
     "options": ["কুতুবউদ্দিন আইবক", "ইলতুৎমিশ", "রাজিয়া সুলতানা", "আলাউদ্দিন খিলজি"],
@@ -178,6 +177,7 @@ const questions = [
 
 ];
 
+
 let currentQuestionIndex = 0;
 let score = 0;
 let correctCount = 0;
@@ -204,6 +204,12 @@ const fullMarksInfo = document.getElementById('fullMarksInfo');
 const timeLimitInfo = document.getElementById('timeLimitInfo');
 
 const quizScreen = document.getElementById('quizScreen');
+const resultScreen = document.getElementById('resultScreen');
+
+// New: References to the result summary and detailed answers containers
+const resultSummary = document.getElementById('resultSummary');
+const detailedAnswersContainer = document.getElementById('detailedAnswersContainer');
+
 
 const scoreDisplayElem = document.getElementById('scoreDisplay');
 const questionIndexDisplayElem = document.getElementById('questionIndexDisplay');
@@ -221,6 +227,17 @@ const circumference = 2 * Math.PI * 35;
 progressRingBar.style.strokeDasharray = circumference;
 progressRingBar.style.strokeDashoffset = circumference;
 
+const rankListElem = document.getElementById('rankList');
+
+// New: Get the new buttons for detailed answers
+const showAllAnswersButton = document.getElementById('showAllAnswersButton');
+const showCorrectAnswersButton = document.getElementById('showCorrectAnswersButton');
+const showWrongAnswersButton = document.getElementById('showWrongAnswersButton');
+const showSkippedQuestionsButton = document.getElementById('showSkippedQuestionsButton');
+const backToResultsButton = document.getElementById('backToResultsButton'); // Back button
+const detailedAnswersTitle = document.getElementById('detailedAnswersTitle');
+const questionsList = document.getElementById('questionsList');
+
 
 // Set initial info on start screen
 totalQuestionsInfo.textContent = questions.length;
@@ -237,84 +254,96 @@ skipButton.style.display = 'none';
 submitButton.style.display = 'none';
 
 
+// New: Event listeners for the detailed answer buttons
+showAllAnswersButton.addEventListener('click', () => displayDetailedQuestions('all'));
+showCorrectAnswersButton.addEventListener('click', () => displayDetailedQuestions('correct'));
+showWrongAnswersButton.addEventListener('click', () => displayDetailedQuestions('wrong'));
+showSkippedQuestionsButton.addEventListener('click', () => displayDetailedQuestions('skipped'));
+backToResultsButton.addEventListener('click', backToSummaryScreen);
+
+
 // Function to shuffle an array (Fisher-Yates algorithm)
 function shuffleArray(array) {
-  for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]];
-  }
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
 }
 
 // --- Name Input and Screen Flow ---
 function handleNameInputAndShowStartScreen() {
-  const inputName = userNameInput.value.trim();
-  if (inputName === '') {
-    nameInputMessage.textContent = "আপনার নাম লিখুন কুইজ শুরু করার জন্য।";
-    return;
-  }
-  userName = inputName; // ব্যবহারকারীর নাম সংরক্ষণ করুন
-  nameInputMessage.textContent = ''; // মেসেজ মুছে ফেলুন
-  nameInputScreen.classList.remove('active');
-  startScreen.classList.add('active'); // নাম ইনপুট করার পর startScreen দেখান
+    const inputName = userNameInput.value.trim();
+    if (inputName === '') {
+        nameInputMessage.textContent = "আপনার নাম লিখুন কুইজ শুরু করার জন্য।";
+        return;
+    }
+    userName = inputName; // ব্যবহারকারীর নাম সংরক্ষণ করুন
+    nameInputMessage.textContent = ''; // মেসেজ মুছে ফেলুন
+
+    nameInputScreen.classList.remove('active');
+    startScreen.classList.add('active'); // নাম ইনপুট করার পর startScreen দেখান
 }
 
-function startQuiz() {
-  // startScreen থেকে কুইজ শুরু করার ফাংশন
-  // Shuffle questions at the start of the quiz
-  shuffleArray(questions); // Add this line to shuffle questions
-  questions.forEach(q => shuffleArray(q.options)); // Shuffle options for each question
-  startScreen.classList.remove('active');
-  quizScreen.classList.add('active');
-  resetQuizState(); // কুইজ স্টেট রিসেট করুন কুইজ শুরু করার আগে
-  loadQuestion();
-  scoreDisplayElem.textContent = score;
+
+function startQuiz() { // startScreen থেকে কুইজ শুরু করার ফাংশন
+    // Shuffle questions at the start of the quiz
+    shuffleArray(questions); // Add this line to shuffle questions
+    questions.forEach(q => shuffleArray(q.options)); // Shuffle options for each question
+
+    startScreen.classList.remove('active');
+    quizScreen.classList.add('active');
+    resetQuizState(); // কুইজ স্টেট রিসেট করুন কুইজ শুরু করার আগে
+    loadQuestion();
+    scoreDisplayElem.textContent = score;
 }
 
 function resetQuizState() {
-  currentQuestionIndex = 0;
-  score = 0;
-  correctCount = 0;
-  wrongCount = 0;
-  skippedCount = 0;
-  // Reset user answers and status for each question
-  questions.forEach(q => {
-    q.userAnswer = null;
-    q.status = null;
-  });
-  clearInterval(questionTimerInterval); // নিশ্চিত করুন কোনো টাইমার চলছে না
+    currentQuestionIndex = 0;
+    score = 0;
+    correctCount = 0;
+    wrongCount = 0;
+    skippedCount = 0;
+    // Reset user answers and status for each question
+    questions.forEach(q => {
+        q.userAnswer = null;
+        q.status = null;
+    });
+    clearInterval(questionTimerInterval); // নিশ্চিত করুন কোনো টাইমার চলছে না
 }
 
+
 function updateQuestionTimerDisplay() {
-  questionTimerTextElem.textContent = questionTimeLeft;
-  const circumference = 2 * Math.PI * 35;
-  const offset = circumference - (questionTimeLeft / questionTimeLimit) * circumference;
-  progressRingBar.style.strokeDashoffset = offset;
-  // Change color based on time left
-  if (questionTimeLeft <= 10) {
-    progressRingBar.style.stroke = '#FF6347';
-  } else if (questionTimeLeft <= 20) {
-    progressRingBar.style.stroke = '#FFD700';
-  } else {
-    progressRingBar.style.stroke = '#28a745';
-  }
+    questionTimerTextElem.textContent = questionTimeLeft;
+
+    const offset = circumference - (questionTimeLeft / questionTimeLimit) * circumference;
+    progressRingBar.style.strokeDashoffset = offset;
+
+    // Change color based on time left
+    if (questionTimeLeft <= 10) {
+        progressRingBar.style.stroke = '#FF6347';
+    } else if (questionTimeLeft <= 20) {
+        progressRingBar.style.stroke = '#FFD700';
+    } else {
+        progressRingBar.style.stroke = '#28a745';
+    }
 }
 
 function startQuestionTimer() {
-  clearInterval(questionTimerInterval);
-  questionTimeLeft = questionTimeLimit;
-  updateQuestionTimerDisplay();
-  questionTimerInterval = setInterval(() => {
-    questionTimeLeft--;
+    clearInterval(questionTimerInterval);
+    questionTimeLeft = questionTimeLimit;
     updateQuestionTimerDisplay();
-    if (questionTimeLeft <= 0) {
-      clearInterval(questionTimerInterval);
-      // Only proceed if the question hasn't been answered yet
-      if (questions[currentQuestionIndex].status === null) {
-        // Check status
-        handleTimeUp();
-      }
-    }
-  }, 1000);
+    questionTimerInterval = setInterval(() => {
+        questionTimeLeft--;
+        updateQuestionTimerDisplay();
+        if (questionTimeLeft <= 0) {
+            clearInterval(questionTimerInterval);
+            // Only proceed if the question hasn't been answered yet
+            if (questions[currentQuestionIndex].status === null) {
+                // Check status
+                handleTimeUp();
+            }
+        }
+    }, 1000);
 }
 
 // Function to handle Text-to-Speech
@@ -325,139 +354,283 @@ function speak(text, onEndCallback) {
     speech.text = text;
     // Set up the onend callback
     if (onEndCallback) {
-      speech.onend = onEndCallback;
+        speech.onend = onEndCallback;
     }
     window.speechSynthesis.speak(speech);
   } else {
     console.log("Speech Synthesis not supported");
-    // If speech is not supported, just call the callback
+    // If speech is not supported, just call the callback immediately
     if (onEndCallback) {
-      onEndCallback();
+        onEndCallback();
     }
   }
 }
 
+// Function to stop any ongoing speech
+function stopSpeaking() {
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+  }
+}
 
 function loadQuestion() {
+    stopSpeaking(); // Stop any previous speech
     if (currentQuestionIndex >= questions.length) {
-        // কুইজ শেষ হয়েছে, এখন ফলাফলের স্ক্রিন দেখানোর পরিবর্তে পেজ রিলোড করুন
-        location.reload();
+        handleSubmitQuiz();
+        return;
+    }
+    clearInterval(questionTimerInterval);
+    const currentQuestion = questions[currentQuestionIndex];
+    questionIndexDisplayElem.textContent = `${currentQuestionIndex + 1} / ${questions.length}`;
+
+    questionTextBox.textContent = currentQuestion.question;
+    optionsContainer.innerHTML = '';
+    
+    // Reset and add animation class to question box
+    questionTextBox.classList.remove('active');
+    void questionTextBox.offsetWidth; // Trigger reflow
+    questionTextBox.classList.add('active');
+    feedbackMessage.textContent = '';
+    feedbackMessage.style.color = 'transparent';
+
+    // Add options to the DOM
+    currentQuestion.options.forEach((option, index) => {
+        const button = document.createElement('button');
+        button.classList.add('option');
+        button.textContent = option;
+        optionsContainer.appendChild(button);
+
+        setTimeout(() => {
+            button.classList.add('active');
+        }, index * 100);
+    });
+
+    // Speak the question after a short delay to ensure previous speech is canceled
+    setTimeout(() => {
+        speak(currentQuestion.question, handleAutoAnswer);
+    }, 200); // 200ms delay
+}
+
+// -------------------------------------------------------------
+// আপনার অনুরোধ অনুযায়ী সংশোধিত handleAutoAnswer() ফাংশন
+// -------------------------------------------------------------
+function handleAutoAnswer() {
+    stopSpeaking(); // কোনো চলমান স্পিচ বন্ধ করুন
+    const currentQuestion = questions[currentQuestionIndex];
+    if (!currentQuestion || currentQuestion.status !== null) {
         return;
     }
 
-  const currentQuestion = questions[currentQuestionIndex];
-  questionIndexDisplayElem.textContent = `${currentQuestionIndex + 1} / ${questions.length}`;
-  questionTextBox.textContent = currentQuestion.question;
-  optionsContainer.innerHTML = '';
-  feedbackMessage.textContent = '';
-  selectedOption = null;
-  nextButton.style.display = 'none';
-  skipButton.style.display = 'inline-block';
-  submitButton.style.display = 'none';
-  
-  // Create option buttons and append to container
-  currentQuestion.options.forEach(option => {
-    const optionButton = document.createElement('button');
-    optionButton.classList.add('option');
-    optionButton.textContent = option;
-    optionButton.addEventListener('click', () => handleOptionClick(optionButton, option));
-    optionsContainer.appendChild(optionButton);
-  });
-  startQuestionTimer();
-}
+    // ব্যবহারকারী যাতে কোনো অপশনে ক্লিক করতে না পারে তার জন্য সবগুলো অপশন বাটন অক্ষম করা হলো
+    const options = optionsContainer.children;
+    for (let i = 0; i < options.length; i++) {
+        options[i].disabled = true;
+    }
 
-function handleOptionClick(clickedButton, selectedAnswer) {
-    // Disable all option buttons
-    const allOptions = optionsContainer.querySelectorAll('.option');
-    allOptions.forEach(option => option.disabled = true);
-    
-    // Check if the selected answer is correct
-    const currentQuestion = questions[currentQuestionIndex];
-    const correctAnswer = currentQuestion.answer;
-    
-    selectedOption = selectedAnswer; // Save the user's answer
-    
-    if (selectedAnswer === correctAnswer) {
-        clickedButton.classList.add('correct');
-        feedbackMessage.textContent = 'সঠিক উত্তর!';
-        speak('সঠিক উত্তর');
-        questions[currentQuestionIndex].userAnswer = selectedAnswer; // Save user's answer
-        questions[currentQuestionIndex].status = 'correct'; // Mark as correct
-        score++;
+    // ⭐ পরিবর্তিত লাইন: উত্তরটি প্রকাশ করার আগে ৫ সেকেন্ড অপেক্ষা করার জন্য setTimeout ব্যবহার করা হলো
+    setTimeout(() => {
+        const correctAnswer = currentQuestion.answer;
+        currentQuestion.userAnswer = correctAnswer;
+        currentQuestion.status = 'correct';
         correctCount++;
-    } else {
-        clickedButton.classList.add('wrong');
-        feedbackMessage.textContent = 'ভুল উত্তর।';
-        speak('ভুল উত্তর');
-        questions[currentQuestionIndex].userAnswer = selectedAnswer; // Save user's answer
-        questions[currentQuestionIndex].status = 'wrong'; // Mark as wrong
-        wrongCount++;
-        // Find and highlight the correct answer
-        allOptions.forEach(option => {
-            if (option.textContent === correctAnswer) {
-                option.classList.add('correct');
+
+        // সঠিক উত্তরটি খুঁজে বের করে হাইলাইট করা হলো
+        Array.from(optionsContainer.children).forEach(optionBtn => {
+            if (optionBtn.textContent === correctAnswer) {
+                optionBtn.classList.add('selected', 'correct');
             }
         });
-    }
 
-    scoreDisplayElem.textContent = score;
-    clearInterval(questionTimerInterval);
-    nextButton.style.display = 'inline-block';
-    skipButton.style.display = 'none';
-    
-    // If it's the last question, show the submit button
-    if (currentQuestionIndex === questions.length - 1) {
-        nextButton.style.display = 'none';
-        submitButton.style.display = 'inline-block';
+        score++;
+        scoreDisplayElem.textContent = score.toFixed(2);
+
+        // কেবল উত্তরটি সরাসরি বলা হচ্ছে
+        speak(`${correctAnswer}`, () => {
+            setTimeout(() => {
+                currentQuestionIndex++;
+                loadQuestion();
+            }, 1500); // পরের প্রশ্নে যাওয়ার আগে ১.৫ সেকেন্ড বিরতি
+        });
+    }, 5000); // ⭐ পরিবর্তিত মান: 5000 মিলিসেকেন্ড = ৫ সেকেন্ড
+}
+
+// -------------------------------------------------------------
+// এখানে কোনো পরিবর্তন নেই
+// -------------------------------------------------------------
+
+function handleSubmitQuiz() {
+    stopSpeaking(); // Stop speech before showing results
+    quizScreen.classList.remove('active');
+    resultScreen.classList.add('active');
+    displayResults();
+    // Save results to Firebase
+    saveQuizResult(userName, score, correctCount, wrongCount);
+}
+
+// Function to display quiz results
+function displayResults() {
+    const finalScoreElem = document.getElementById('finalScore');
+    const correctAnswersElem = document.getElementById('correctAnswers');
+    const wrongAnswersElem = document.getElementById('wrongAnswers');
+    const skippedQuestionsElem = document.getElementById('skippedQuestions');
+    const percentageElem = document.getElementById('percentage');
+    const percentageBarFill = document.getElementById('percentageBarFill');
+    const userStatusElem = document.getElementById('userStatus');
+
+    finalScoreElem.textContent = score.toFixed(2);
+    correctAnswersElem.textContent = correctCount;
+    wrongAnswersElem.textContent = wrongCount;
+    skippedQuestionsElem.textContent = skippedCount;
+
+    const totalQuestions = questions.length;
+    const percentage = (correctCount / totalQuestions) * 100;
+    percentageElem.textContent = percentage.toFixed(2);
+    percentageBarFill.style.width = percentage.toFixed(2) + '%';
+
+    if (percentage >= passMarkPercentage) {
+        userStatusElem.textContent = 'অভিনন্দন! আপনি পাশ করেছেন।';
+        userStatusElem.style.color = 'green';
+        percentageBarFill.style.backgroundColor = '#4CAF50';
+    } else {
+        userStatusElem.textContent = 'দুঃখিত! আপনি পাশ করতে পারেননি।';
+        userStatusElem.style.color = 'red';
+        percentageBarFill.style.backgroundColor = '#f44336';
     }
 }
 
-function handleTimeUp() {
-    // If time is up, it's considered skipped
-    questions[currentQuestionIndex].userAnswer = null; // No answer
-    questions[currentQuestionIndex].status = 'skipped'; // Mark as skipped
-    skippedCount++;
-    
-    // Find and highlight the correct answer
-    const allOptions = optionsContainer.querySelectorAll('.option');
-    allOptions.forEach(option => {
-        if (option.textContent === questions[currentQuestionIndex].answer) {
-            option.classList.add('correct');
+
+// Firebase integration
+
+// Note: You must initialize Firebase in your HTML file before using it.
+// Here is the placeholder for the database reference.
+// Make sure to configure your own Firebase project details in index.html
+const dbRef = firebase.database().ref('quiz_results');
+
+function saveQuizResult(userName, score, correctCount, wrongCount) {
+    const totalQuestions = questions.length;
+    const resultData = {
+        name: userName,
+        score: score,
+        correct: correctCount,
+        wrong: wrongCount,
+        skipped: totalQuestions - correctCount - wrongCount,
+        percentage: (correctCount / totalQuestions) * 100,
+        timestamp: firebase.database.ServerValue.TIMESTAMP
+    };
+
+    dbRef.push(resultData, (error) => {
+        if (error) {
+            console.error("Data could not be saved." + error);
+        } else {
+            console.log("Data saved successfully.");
+            fetchAndDisplayRankings();
         }
-        option.disabled = true; // Disable all options
     });
-    
-    feedbackMessage.textContent = 'সময় শেষ! এটি বাদ দেওয়া হয়েছে।';
-    speak('সময় শেষ');
-    
-    nextButton.style.display = 'inline-block';
-    skipButton.style.display = 'none';
-    
-    if (currentQuestionIndex === questions.length - 1) {
-        nextButton.style.display = 'none';
-        submitButton.style.display = 'inline-block';
-    }
 }
 
-nextButton.addEventListener('click', () => {
-    currentQuestionIndex++;
-    loadQuestion();
-});
+function fetchAndDisplayRankings() {
+    const rankListElem = document.getElementById('rankList');
+    rankListElem.innerHTML = '';
+    dbRef.orderByChild('percentage').limitToLast(10).once('value', (snapshot) => {
+        const rankings = [];
+        snapshot.forEach((childSnapshot) => {
+            const result = childSnapshot.val();
+            rankings.push(result);
+        });
 
-skipButton.addEventListener('click', () => {
-    handleTimeUp();
-});
+        rankings.sort((a, b) => b.percentage - a.percentage);
 
-submitButton.addEventListener('click', () => {
-    if (currentQuestionIndex === questions.length - 1) {
-        // কুইজ শেষ, ফলাফলের স্ক্রিন দেখানোর পরিবর্তে পেজ রিলোড করুন
-        location.reload();
+        rankings.forEach((result, index) => {
+            const listItem = document.createElement('li');
+            listItem.textContent = `${result.name}: ${result.percentage.toFixed(2)}%`;
+            rankListElem.appendChild(listItem);
+        });
+    });
+}
+
+
+// New: Detailed answers functionality
+function displayDetailedQuestions(filter) {
+    resultSummary.style.display = 'none'; // Hide summary
+    detailedAnswersContainer.style.display = 'block'; // Show detailed view
+    questionsList.innerHTML = ''; // Clear previous list
+
+    let filteredQuestions = [];
+    if (filter === 'all') {
+        filteredQuestions = questions;
+    } else if (filter === 'correct') {
+        filteredQuestions = questions.filter(q => q.status === 'correct');
+    } else if (filter === 'wrong') {
+        filteredQuestions = questions.filter(q => q.status === 'wrong');
+    } else if (filter === 'skipped') {
+        filteredQuestions = questions.filter(q => q.status === 'skipped');
     }
-});
+    
+    // Set the title
+    if (filter === 'all') {
+        detailedAnswersTitle.textContent = 'সকল উত্তর';
+    } else if (filter === 'correct') {
+        detailedAnswersTitle.textContent = 'সঠিক উত্তর';
+    } else if (filter === 'wrong') {
+        detailedAnswersTitle.textContent = 'ভুল উত্তর';
+    } else if (filter === 'skipped') {
+        detailedAnswersTitle.textContent = 'বাদ দেওয়া প্রশ্ন';
+    }
 
-// Initial call to set up info
-document.addEventListener('DOMContentLoaded', () => {
-    totalQuestionsInfo.textContent = questions.length;
-    fullMarksInfo.textContent = questions.length;
-    timeLimitInfo.textContent = Math.ceil(questions.length * questionTimeLimit / 60);
-});
+    filteredQuestions.forEach(q => {
+        const originalQuestionIndex = questions.findIndex(originalQ => originalQ.question === q.question);
+        const listItem = document.createElement('li');
+        listItem.classList.add('detailed-question-item');
+
+        let statusClass = '';
+        let statusText = '';
+        if (q.status === 'correct') {
+            statusClass = 'status-correct';
+            statusText = 'সঠিক';
+        } else if (q.status === 'wrong') {
+            statusClass = 'status-wrong';
+            statusText = 'ভুল';
+        } else if (q.status === 'skipped') {
+            statusClass = 'status-skipped';
+            statusText = 'বাদ দেওয়া হয়েছে';
+        }
+        // Get original question index
+        const questionNumber = originalQuestionIndex + 1; // 1-based index
+
+        let questionHtml = `
+            <div class="question-header">
+                <span class="question-number">${questionNumber}.</span>
+                <span class="question-text">${q.question}</span>
+                <span class="status-indicator ${statusClass}">${statusText}</span>
+            </div>
+            <ul class="detailed-options">
+        `;
+
+        q.options.forEach(option => {
+            let optionClass = '';
+            if (q.userAnswer === option) {
+                if (q.status === 'correct') {
+                    optionClass = 'selected-correct';
+                } else if (q.status === 'wrong') {
+                    optionClass = 'selected-wrong';
+                }
+            }
+            if (option === q.answer && q.status !== 'correct') { // Always show correct answer if user was wrong or skipped
+                optionClass += ' correct-answer-highlight';
+            }
+            
+            questionHtml += `<li class=\"${optionClass}\">${option}</li>`;
+        });
+
+        questionHtml += `</ul>`;
+        listItem.innerHTML = questionHtml;
+        questionsList.appendChild(listItem);
+    });
+}
+
+
+// Function to go back to result summary
+function backToSummaryScreen() {
+    detailedAnswersContainer.style.display = 'none'; // Hide detailed view
+    resultSummary.style.display = 'block'; // Show summary
+}
