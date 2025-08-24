@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>#17 General Knowledge</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="quiz-container">
+        <div class="name-input-screen active" id="nameInputScreen">
+            <div class="logo-container-top-right">
+                <div class="outer-circle">
+                    <div class="inner-circle">
+                        <div class="logo-text">
+                            <span>Utkarsh</span>
+                            <span>Coaching</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <h1>WELCOME</h1>
+            <p>Enter Your Name</p>
+            <div class="input-group">
+                <input type="text" id="userNameInput" placeholder="আপনার নাম" required>
+            </div>
+            <button class="button glow-on-hover" id="proceedToStartScreenButton">Next</button>
+            <div id="nameInputMessage" style="color: red; margin-top: 10px;"></div>
+        </div>
+
+        <div class="start-screen" id="startScreen">
+            <div class="logo-container-top-right">
+                <div class="outer-circle">
+                    <div class="inner-circle">
+                        <div class="logo-text">
+                            <span>Utkarsh</span>
+                            <span>Coaching</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <h1>স্ট্যাটিক জিকে # 17</h1>
+            <div class="info-item">Total Question: <span id="totalQuestionsInfo"></span></div>
+            <div class="info-item">Full Marks: <span id="fullMarksInfo"></span></div>
+            <div class="info-item">Time: <span id="timeLimitInfo"></span> মিনিট</div>
+            <div class="info-item"></div>
+            <button class="button" id="startButton">Start</button>
+        </div>
+
+        <div class="quiz-screen" id="quizScreen">
+            <div class="top-bar">
+                <div class="question-timer-circle">
+                    <svg class="progress-ring" width="80" height="80">
+                        <circle class="progress-ring-track" stroke="#d3d3d3" stroke-width="6" fill="transparent" r="35" cx="40" cy="40"/>
+                        <circle class="progress-ring-bar" stroke="#28a745" stroke-width="6" fill="transparent" r="35" cx="40" cy="40"/>
+                    </svg>
+                    <span class="question-timer-text" id="questionTimer">30</span>
+                </div>
+                <div class="score-display">SCORE: <span id="scoreDisplay">0</span></div>
+            </div>
+
+            <div class="question-index-display" id="questionIndexDisplay"></div>
+
+            <div class="question-text-box" id="questionTextBox"> </div>
+
+            <div class="options-container" id="optionsContainer">
+            </div>
+            <div class="feedback-message" id="feedbackMessage"></div>
+
+            <div class="controls">
+                <button class="button navigation-button" id="nextButton">Next</button>
+                <button class="button navigation-button skip-button" id="skipButton">Skip</button>
+                <button class="button navigation-button submit-button" id="submitButton" style="display: none;">Submit</button>
+            </div>
+        </div>
+        
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js"></script>
+
+    <script>
+        // আপনার Firebase প্রোজেক্ট কনফিগারেশন
+        const firebaseConfig = {
+            apiKey: "AIzaSyDwGzTPmFg-gjoYtNWNJM47p22NfBugYFA",
+            authDomain: "mock-test-1eea6.firebaseapp.com",
+            databaseURL: "https://mock-test-1eea6-default-rtdb.firebaseio.com",
+            projectId: "mock-test-1eea6",
+            storageBucket: "mock-test-1eea6.firebaseapp.com",
+            messagingSenderId: "111849173136",
+            appId: "1:111849173136:web:8b211f58d854119e88a815",
+            measurementId: "G-G59L9P7Q47"
+        };
+        firebase.initializeApp(firebaseConfig);
+    </script>
+    <script src="script.js"></script>
+</body>
+</html>
