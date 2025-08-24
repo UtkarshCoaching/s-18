@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>#18 General Knowledge</title>
+    <title>#17 General Knowledge</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -39,7 +39,7 @@
                     </div>
                 </div>
             </div>
-            <h1>স্ট্যাটিক জিকে # 18</h1>
+            <h1>স্ট্যাটিক জিকে # 17</h1>
             <div class="info-item">Total Question: <span id="totalQuestionsInfo"></span></div>
             <div class="info-item">Full Marks: <span id="fullMarksInfo"></span></div>
             <div class="info-item">Time: <span id="timeLimitInfo"></span> মিনিট</div>
@@ -73,7 +73,43 @@
                 <button class="button navigation-button submit-button" id="submitButton" style="display: none;">Submit</button>
             </div>
         </div>
-        
+
+        <div class="result-screen" id="resultScreen">
+            <h2>Result</h2>
+            <div class="result-summary" id="resultSummary">
+                <p class="score-overall">Score: <span id="finalScore">0.00</span></p>
+                <p>Correct Answers: <span id="correctAnswers">0</span></p>
+                <p>Wrong Answers: <span id="wrongAnswers">0</span></p>
+                <p>Unattempted: <span id="skippedQuestions">0</span></p>
+                <p>Total Questions: <span id="finalTotalQuestions">25</span></p>
+
+                <p class="your-percentage-text">Your Percentage: <span id="yourPercentage">0.00%</span></p>
+                <div class="percentage-bar">
+                    <div class="percentage-bar-fill" id="percentageBarFill"></div>
+                </div>
+
+                <div class="result-actions">
+                    <button class="button show-button" id="showAllAnswersButton">show-all</button>
+                    <button class="button show-button" id="showCorrectAnswersButton">show-Correct</button>
+                    <button class="button show-button" id="showWrongAnswersButton">show-wrong</button>
+                    <button class="button show-button" id="showSkippedQuestionsButton">show-Unattempted</button>
+                </div>
+            </div>
+
+            <div class="detailed-answers-container" id="detailedAnswersContainer" style="display: none;">
+                <h2 id="detailedAnswersTitle"></h2>
+                <div class="detailed-questions-list">
+                    <ul id="questionsList"></ul>
+                </div>
+                <button class="button" id="backToResultsButton">ফলাফলে ফিরে যান</button>
+            </div>
+
+            <div class="ranking-section">
+                <h2>Maximum Score</h2>
+                <ol id="rankList"></ol>
+            </div>
+            <button class="button" onclick="location.reload()">আবার শুরু করুন</button>
+        </div>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
@@ -89,11 +125,18 @@
             storageBucket: "mock-test-1eea6.firebaseapp.com",
             messagingSenderId: "111849173136",
             appId: "1:111849173136:web:8b211f58d854119e88a815",
-            measurementId: "G-G59L9P7Q47"
+            measurementId: "G-5RLWPTP8YD"
         };
+
+        // Firebase ইনিশিয়ালাইজ করুন
         firebase.initializeApp(firebaseConfig);
+        const database = firebase.database(); // Realtime Database এর রেফারেন্স
     </script>
+
+    <script>
+        const QUIZ_ID = "স্ট্যাটিক 18"; // এই ID টি প্রতিটি কুইজের জন্য অনন্য হবে
+    </script>
+
     <script src="script.js"></script>
 </body>
-
 </html>
